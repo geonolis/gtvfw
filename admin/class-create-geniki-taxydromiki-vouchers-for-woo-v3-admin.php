@@ -415,7 +415,7 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
   	// 	global $post; OLD
   	 	if ( 'gt_track' === $column ) {
   	// 	    $order = wc_get_order( $post->ID );  OLD
-	 		$this->gt_shipping_status( $order );
+	 		echo $this->gt_shipping_status( $order );
     	}	
 	}
 	
