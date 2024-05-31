@@ -428,7 +428,7 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 			echo 'not available';
 			return ;
 		}
-		if (! $this->gt_api instanceof GT_API) 	$this->gt_api = new GT_API();
+		if ( ! @isset($this->gt_api) ) $this->gt_api = new GT_API();
 		return 	$this->gt_api->get_status($courier_voucher);
 	}
 
