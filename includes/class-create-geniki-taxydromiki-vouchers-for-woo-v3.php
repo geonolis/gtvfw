@@ -177,9 +177,9 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3 {
 		// Create voucher when order completed
 		$this->loader->add_action('woocommerce_order_status_completed', $plugin_admin, 'woocommerce_create_gt_voucher');
 		// Add orders list info column content
-		$this->loader->add_action('manage_woocommerce_page_wc-orders_columns', $plugin_admin, 'gt_add_new_order_admin_list_column_content');
+		$this->loader->add_action('manage_woocommerce_page_wc-orders_columns', $plugin_admin, 'gt_add_new_order_admin_list_column');
 		// Add orders list column title
-		$this->loader->add_filter('manage_woocommerce_page_wc-orders_custom_columns', $plugin_admin, 'gt_add_new_order_admin_list_column');
+		$this->loader->add_filter('manage_woocommerce_page_wc-orders_custom_column', $plugin_admin, 'gt_add_new_order_admin_list_column_content',10,2);
 
 	}
 

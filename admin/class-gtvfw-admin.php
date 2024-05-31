@@ -21,7 +21,7 @@
 	*/
 
 class GTVFW {
-	private $gt_api_object;
+	private GT_API $gt_api_object;
 
 	public function __construct( GT_API $gt_api_object ){
 		$this->gt_api_object=$gt_api_object;

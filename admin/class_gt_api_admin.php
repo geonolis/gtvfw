@@ -60,7 +60,7 @@ class GT_API {
 			}
 				catch(SoapFault $fault) 
 			{ 
-				return 1 ; //return $gt_key ; //προσωρινη λυση
+				return 'Soap protocol fault' ; //return $gt_key ; //προσωρινη λυση
 			}
 		}
 	}
@@ -81,69 +81,126 @@ class GT_API {
 		return $this->service_url . "/GetVouchersPdf?authKey=". urlencode( $this->gt_auth() )."&voucherNumbers=".$voucher."&Format=Flyer&extraInfoFormat=None";
  	}
 
+	public function get_status( $voucher ) {
+		try {
+			$oAuthResult = $this->gt_auth();
+			if ( $oAuthResult == 1 ) {
+				$result = 'Auth error';
+			} else {
+				$gt_tried   = false;    // flag ότι έγινε η πρώτη προπάθεια δημιουργίας αποστολής
+				$gt_counter = 0;        // μετρητής προσπαθειών σύνδεσης
+				do {
+					if ( $gt_tried ) {
+						$oAuthResult = $this->gt_auth( true );
+					} // Αν είναι 2η προσπάθεια τότε ζήτα νέο κωδικό authorization
+					$soap = new SoapClient( $this->service_url . '?WSDL' );
+					$xml  = array(  // array για αναζήτηση αριθμού αποστολής
+						'authKey'   => $oAuthResult,
+						'voucherNo' => $voucher,
+						'language'  => 'el'
+					);
+
+					// βασική κλήση αναζήτησης voucher
+					$TT         = $soap->TrackAndTrace( $xml ); // αναζήτηση αποστολής
+					$gt_tracked = true;    // flag ότι έγινε η πρώτη αναζήτηση
+					if ( ++ $gt_counter == 3 ) { // αν προσπάθησε να συνδεθεί 3 φορές χωρίς επιτυχία τότε ABORD
+						$result = 'error';
+						return $result;
+					}
+				} while ( $TT->TrackAndTraceResult->Result == 11 );
+				if ( $TT->TrackAndTraceResult->Result == 9 ) { // Αν δεν βρέθηκε η αποστολή
+					$result = 'not found';
+				} else {// διαφορετικά, αν πέτυχε η αναζήτηση αποστολής...
+					// ανάκτησε την ημερομηνία
+					$dt     = new DateTime( $TT->TrackAndTraceResult->DeliveryDate );
+					$result = '<a href="https://www.taxydromiki.com/track/' . $voucher . '" target="_blank"><p style=LINE-HEIGHT:18px><strong>' . $TT->TrackAndTraceResult->Status . '</strong>';
+					if ( $TT->TrackAndTraceResult->Status == 'ΠΑΡΑΔΟΜΕΝΟ' ) {
+						$result .= ' την ' . $dt->format( 'j-n-Y' ) . ' σε ' . $TT->TrackAndTraceResult->Consignee . '</p></a>';
+					} else {
+						$result .= '</p></a>';
+					}
+				}
+			}
+		} catch ( SoapFault $fault) {
+			$result = 'Soap error';
+		}
+		return $result;
+	}
+
+
 // Βασική διαδικασία που θα καλείται όταν ΟΛΟΚΛΗΡΩΝΕΤΑΙ η παραγγελία:
 	public function get_gt_voucher( $oVoucher ) {
-	/** oVoucher array:
-	(	'OrderId' => '#' . $order_id,
-		'Name' => $name,
-		'Address' => $address,
-		'City' => $city,
-		'Telephone' => $phone,
-		'Zip' => $zip,
-		'Destination' => "",
-		'Courier' => "",
-		'Pieces' => $pieces,
-		'Weight' => $weight,
-		'Comments' => $message,
-		'Services' => $services ,
-		'CodAmount' => $CodAmount,
-		'InsAmount' => 0,
-		'VoucherNumber' => "",
-		'SubCode' => "",
-		'BelongsTo' => "",
-		'DeliverTo' => "",
-		'ReceivedDate' => $ReceivedDate	)
-	*/
-		try { 
-			$oAuthResult = $this->gt_auth();
-			if ($oAuthResult == 1) 	{
-				$voucher=False;
-			} else {
-				$gt_tried=False;	// flag ότι έγινε η πρώτη προπάθεια δημιουργίας αποστολής
-				$gt_counter=0; 		// μετρητής προσπαθειών σύνδεσης
-				do {
-					if ($gt_tried) $oAuthResult = $this->gt_auth( True ); // Αν είναι 2η προσπάθεια τότε ζήτα νέο κωδικό authorization
-					$soap = new SoapClient( $this->service_url .'?WSDL' );
-					$xml = array('sAuthKey' => $oAuthResult, 'oVoucher' => $oVoucher, 'eType' => "Voucher");
-					$oResult = $soap->CreateJob($xml);  // βασική κλήση δημιουργίας αποστολής
-					$gt_tried=True;	// flag ότι έγινε η πρώτη προσπάθεια
-					if ( ++$gt_counter == 3 ) { // αν προσπάθησε να συνδεθεί 3 φορές χωρίς επιτυχία τότε ABORD
-					 	$voucher=False;
-						return $voucher; 
-					} 
-				} while ($oResult->CreateJobResult->Result == 11 ) ;
-				if($oResult->CreateJobResult->Result != 0) {//αν δεν πέτυχε η δημιουργία αποστολής...
-			
-					$voucher=False;
-				} else {// διαφορετικά, αν πέτυχε η δημιουργία αποστολής...
-						// αποθήκευσε τον αριθμό αποστολής σε meta-data
-					$voucher=$oResult->CreateJobResult->Voucher ;	
-				}
-			
-				if ($this->is_test == 1) { 
-			// Η ΓΤ ζητάει να γίνει δοκιμαστική κλήση της CancelJob() πριν δώσει πλήρη πρόσβαση στο Web Service
-					$CJResult = $soap->CancelJob( array('sAuthKey' => $oAuthResult,'nJobId' => $oResult->CreateJobResult->JobId, 'bCancel' => True ) );
-					$CJResult = $soap->CancelJob( array('sAuthKey' => $oAuthResult,'nJobId' => $oResult->CreateJobResult->JobId, 'bCancel' => False ) );
-				}
+			/** oVoucher array:
+			 * (    'OrderId' => '#' . $order_id,
+			 * 'Name' => $name,
+			 * 'Address' => $address,
+			 * 'City' => $city,
+			 * 'Telephone' => $phone,
+			 * 'Zip' => $zip,
+			 * 'Destination' => "",
+			 * 'Courier' => "",
+			 * 'Pieces' => $pieces,
+			 * 'Weight' => $weight,
+			 * 'Comments' => $message,
+			 * 'Services' => $services ,
+			 * 'CodAmount' => $CodAmount,
+			 * 'InsAmount' => 0,
+			 * 'VoucherNumber' => "",
+			 * 'SubCode' => "",
+			 * 'BelongsTo' => "",
+			 * 'DeliverTo' => "",
+			 * 'ReceivedDate' => $ReceivedDate    )
+			 */
+			try {
+				$oAuthResult = $this->gt_auth();
+				if ( $oAuthResult == 1 ) {
+					$voucher = False;
+				} else {
+					$gt_tried   = False;    // flag ότι έγινε η πρώτη προπάθεια δημιουργίας αποστολής
+					$gt_counter = 0;        // μετρητής προσπαθειών σύνδεσης
+					do {
+						if ( $gt_tried )
+							$oAuthResult = $this->gt_auth( True ); // Αν είναι 2η προσπάθεια τότε ζήτα νέο κωδικό authorization
+						$soap     = new SoapClient( $this->service_url . '?WSDL' );
+						$xml      = array( 'sAuthKey' => $oAuthResult, 'oVoucher' => $oVoucher, 'eType' => "Voucher" );
+						$oResult  = $soap->CreateJob( $xml );  // βασική κλήση δημιουργίας αποστολής
+						$gt_tried = True;    // flag ότι έγινε η πρώτη προσπάθεια
+						if ( ++ $gt_counter == 3 ) { // αν προσπάθησε να συνδεθεί 3 φορές χωρίς επιτυχία τότε ABORD
+							$voucher = False;
 
-			// κλείσιμο αποδεικτικού:
-				$soap->ClosePendingJobs( array('sAuthKey' => $oAuthResult) );
+							return $voucher;
+						}
+					} while ( $oResult->CreateJobResult->Result == 11 );
+					if ( $oResult->CreateJobResult->Result != 0 ) {//αν δεν πέτυχε η δημιουργία αποστολής...
+
+						$voucher = False;
+					} else {// διαφορετικά, αν πέτυχε η δημιουργία αποστολής...
+						// αποθήκευσε τον αριθμό αποστολής σε meta-data
+						$voucher = $oResult->CreateJobResult->Voucher;
+					}
+
+					if ( $this->is_test == 1 ) {
+						// Η ΓΤ ζητάει να γίνει δοκιμαστική κλήση της CancelJob() πριν δώσει πλήρη πρόσβαση στο Web Service
+						$CJResult = $soap->CancelJob( array(
+							'sAuthKey' => $oAuthResult,
+							'nJobId'   => $oResult->CreateJobResult->JobId,
+							'bCancel'  => True
+						) );
+						$CJResult = $soap->CancelJob( array(
+							'sAuthKey' => $oAuthResult,
+							'nJobId'   => $oResult->CreateJobResult->JobId,
+							'bCancel'  => False
+						) );
+					}
+
+					// κλείσιμο αποδεικτικού:
+					$soap->ClosePendingJobs( array( 'sAuthKey' => $oAuthResult ) );
+				}
+			} catch ( SoapFault $fault ) {
+				$voucher = False;
 			}
-		} 
-		catch(SoapFault $fault) {
-			$voucher=False;
-		}
-		return $voucher;
-	} // τέλος function woocommerce_create_gt_voucher( $order_id ) 
+
+			return $voucher;
+		} // τέλος function woocommerce_create_gt_voucher( $order_id )
 
 } //class
