@@ -3,16 +3,6 @@
 /**
  * The core functionality of the plugin.
  *
- * @link       https://github.com/geonolis
- * @since      1.0.0
- *
- * @package    	
- * @subpackage Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3/admin
- */
-
-/**
- * The core functionality of the plugin.
- *
  * Connects to GT Web Services and Creates the Voucher.
  *
  * @package    Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3
@@ -22,7 +12,7 @@
 
 class GT_API {
 
-	private $service_url;
+	private string $service_url;
 	private $is_test;
 	private $password;
 	private $username;
