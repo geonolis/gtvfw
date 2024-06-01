@@ -70,7 +70,7 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_styles($hook) {
+	public function enqueue_styles() {
 
 		/**
 		 * This function is provided for demonstration purposes only.

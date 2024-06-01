@@ -169,7 +169,7 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3 {
 		$plugin_admin = new Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+//		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
 		// my added hooks:
 		// Admin Menu Create
