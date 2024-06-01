@@ -100,4 +100,39 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Public {
 
 	}
 
+
+	/**
+	 * ΕΜΦΆΝΙΣΗ ΑΡΙΘΜΟΥ ΑΠΟΣΤΟΛΗΣ ΓΕΝΙΚΗΣ ΤΑΧΥΔΡΟΜΙΚΗΣ ΣΤΟ ΕΜΑΙΛ ΠΕΛΑΤΗ
+	 * @param $order
+	 */
+	function woocommerce_email_order_tracking( $order ) {
+
+		/* ανάκτηση αριθμού αποστολής από custom field */
+		$courier_voucher = $order->get_meta( 'courier_voucher') ;
+
+		/*  αν βρέθηκε αριθμός αποστολής εμφάνισε λινκ παρακολούθησης */
+		if ( ! empty( $courier_voucher) ) {
+			require_once 'partials/' . $this->plugin_name . '-client-email.php';
+		}
+	}
+
+
+	/**
+	 * ΕΜΦΆΝΙΣΗ ΑΡΙΘΜΟΥ ΑΠΟΣΤΟΛΗΣ ΓΕΝΙΚΗΣ ΤΑΧΥΔΡΟΜΙΚΗΣ ΣΤΟ ΛΟΓΑΡΙΑΣΜΟ ΠΕΛΑΤΗ
+	 * @param $order_id
+	 */
+	function woocommerce_view_order_tracking( $order_id ) {
+
+		/* ανάκτηση αριθμού αποστολής από custom field */
+		$courier_voucher = wc_get_order($order_id)->get_meta( 'courier_voucher') ;
+
+		/*  αν δεν έχει συμπληρωθεί αριθμός αποστολής επέστρεψε */
+		if ( ! empty( $courier_voucher) ) {
+			require_once 'partials/' . $this->plugin_name . '-client-account.php';
+		}
+
+	}
+
+
+
 }

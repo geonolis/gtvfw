@@ -128,4 +128,6 @@ class GTVFW {
 		
 	} // τέλος function woocommerce_create_gt_voucher() 
 
+
+
 } //class

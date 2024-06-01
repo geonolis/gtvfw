@@ -180,15 +180,21 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3 {
 		$this->loader->add_action('woocommerce_order_status_completed', $plugin_admin, 'woocommerce_create_gt_voucher');
 
 		// Add orders list GT shipping status column title + content
-//		if( OrderUtil::custom_orders_table_usage_is_enabled() ) {
-			// HPOS is enabled.
-			$this->loader->add_action('manage_woocommerce_page_wc-orders_columns', $plugin_admin, 'gt_add_new_order_admin_list_column');
-			$this->loader->add_filter('manage_woocommerce_page_wc-orders_custom_column', $plugin_admin, 'gt_add_new_order_admin_list_column_content',10,2);
-//		} else {
-			// CPT-based orders are in use.
-			$this->loader->add_action('manage_edit-shop_order_columns', $plugin_admin, 'gt_add_new_order_admin_list_column');
-			$this->loader->add_filter('manage_shop_order_posts_custom_column', $plugin_admin, 'gt_add_new_order_admin_list_column_content',10,2);
-//		}
+		// HPOS is enabled.
+		$this->loader->add_action('manage_woocommerce_page_wc-orders_columns', $plugin_admin, 'gt_add_new_order_admin_list_column');
+		$this->loader->add_filter('manage_woocommerce_page_wc-orders_custom_column', $plugin_admin, 'gt_add_new_order_admin_list_column_content',10,2);
+		// CPT-based orders are in use.
+		$this->loader->add_action('manage_edit-shop_order_columns', $plugin_admin, 'gt_add_new_order_admin_list_column');
+		$this->loader->add_filter('manage_shop_order_posts_custom_column', $plugin_admin, 'gt_add_new_order_admin_list_column_content',10,2);
+
+		// Add voucher number to searchable fields
+		// HPOS is enabled.
+		$this->loader->add_filter( 'woocommerce_order_table_search_query_meta_keys', $plugin_admin, 'woocommerce_shop_order_search_voucher' );
+		// CPT-based orders are in use.
+		$this->loader->add_filter( 'woocommerce_shop_order_search_fields', $plugin_admin, 'woocommerce_shop_order_search_voucher' );
+
+		// Add a custom metabox only for shop_order post type (order edit pages)
+		$this->loader->add_action( 'add_meta_boxes', $plugin_admin,'gt_add_meta_boxes' );
 	}
 
 	/**
@@ -202,7 +208,13 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3 {
 
 		$plugin_public = new Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Public( $this->get_plugin_name(), $this->get_version() );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+//		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+
+//		Add shipping voucher info at client e-mail:
+		$this->loader->add_action( 'woocommerce_email_before_order_table',  $plugin_public, 'woocommerce_email_order_tracking' );
+
+//		ΕΜΦΆΝΙΣΗ ΑΡΙΘΜΟΥ ΑΠΟΣΤΟΛΗΣ ΓΕΝΙΚΗΣ ΤΑΧΥΔΡΟΜΙΚΗΣ ΣΤΟ ΛΟΓΑΡΙΑΣΜΟ ΠΕΛΑΤΗ
+		$this->loader->add_action( 'woocommerce_view_order', $plugin_public, 'woocommerce_view_order_tracking' );
 
 	}
 
