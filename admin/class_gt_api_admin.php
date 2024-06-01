@@ -19,6 +19,12 @@ class GT_API {
 	private $appkey;
 	private $sel_methods=array();
 
+	/**
+	 * The constructor reads the plugin settings from database and stores them to
+	 * object properties. It is designed to query database only once.
+	 *
+	 * GT_API constructor.
+	 */
 	public function __construct() {
 		$settings=get_option('gtvfw_settings');
 		$this->is_test=$settings['gt_testmode'];
@@ -29,6 +35,14 @@ class GT_API {
 		$this->service_url=($this->is_test==1) ? "https://testvoucher.taxydromiki.gr/JobServicesV2.asmx" :  "https://voucher.taxydromiki.gr/JobServicesV2.asmx" ;
 	}
 
+	/**
+	 * Authenticate method. Returns key to be used in every call to Web Service
+	 * If optional param is set to true then asks for new authentication key
+	 * If param is omitted it is meant to be false and it returns last key (set as static)
+	 * @param false $gt_renew
+	 *
+	 * @return int|mixed|string
+	 */
 	private function gt_auth( $gt_renew = False )
 	{
 		static $gt_key;
@@ -62,15 +76,27 @@ class GT_API {
 	*
 	* @since    1.0.0
 	*/
-
 	public function get_methods(){
 		return $this->sel_methods;
 	}
- 
+
+	/**
+	 * Creates link to print voucher pdf
+	 * @param $voucher number
+	 *
+	 * @return string with URL
+	 */
  	public function get_voucher_url( $voucher ){
 		return $this->service_url . "/GetVouchersPdf?authKey=". urlencode( $this->gt_auth() )."&voucherNumbers=".$voucher."&Format=Flyer&extraInfoFormat=None";
  	}
 
+	/**
+	 * Get shipping status of the given voucher number
+	 * @param $voucher
+	 *
+	 * @return string with info of the shipping status, date of delivery and link to tracking page
+	 * @throws Exception
+	 */
 	public function get_status( $voucher ) {
 		try {
 			$oAuthResult = $this->gt_auth();
@@ -118,7 +144,14 @@ class GT_API {
 	}
 
 
-// Βασική διαδικασία που θα καλείται όταν ΟΛΟΚΛΗΡΩΝΕΤΑΙ η παραγγελία:
+	/**
+	 * Βασική διαδικασία που θα καλείται όταν ΟΛΟΚΛΗΡΩΝΕΤΑΙ η παραγγελία
+	 * Επιστρέφει τον αριθμό του voucher ή false αν απέτυχε
+	 *
+	 * @param $oVoucher array με τα στοιχεία που χρειάζεται η GT
+	 *
+	 * @return integer || false
+	 */
 	public function get_gt_voucher( $oVoucher ) {
 			/** oVoucher array:
 			 * (    'OrderId' => '#' . $order_id,
@@ -189,8 +222,63 @@ class GT_API {
 			} catch ( SoapFault $fault ) {
 				$voucher = False;
 			}
-
 			return $voucher;
 		} // τέλος function woocommerce_create_gt_voucher( $order_id )
+
+	/**
+	 * Εμφάνιση πορείας αποστολής (tracking)
+	 * @param $voucher
+	 *
+	 * @throws Exception
+	 */
+	function get_track( $voucher ) {
+		try {
+			$gt_tracked  = false;                // flag αν έχει κληθεί η αναζήτηση αποστολής
+			$oAuthResult = $this->gt_auth();        // κλήση της συνάρτησης για authorization και επιστροφή κλειδιού
+			if ( $oAuthResult == 1 )            // Αν η authorization επέστρεψε -1-  τότε απέτυχε - ABORD
+			{
+				return 'authentication failure 1';
+			}
+			$gt_counter = 0; // μετρητής προσπαθειών σύνδεσης
+			do {
+				if ( $gt_tracked )
+					$oAuthResult = $this->gt_auth( true );
+				$soap       = new SoapClient( $this->service_url . '?WSDL' );
+				$xml        = array
+				(
+					'authKey'   => $oAuthResult,
+					'voucherNo' => $voucher,
+					'language'  => 'el'
+				);
+				$TT         = $soap->TrackAndTrace( $xml );
+				$gt_tracked = true;
+				if ( ++ $gt_counter == 3 ) { // αν προσπάθησε να συνδεθεί 3 φορές χωρίς επιτυχία τότε ABORD
+					return 'authentication failure 3';
+				}
+			} while ( $TT->TrackAndTraceResult->Result == 11 );
+			if ( $TT->TrackAndTraceResult->Result == 9 ) {
+				$result='not found';
+			} else {
+				$result= '<div class="l-content" role="main">
+					  <div class="result-tracking-message form-wrapper" id="tracking-result" style="display: block">
+					  <div class="tracking-result form-wrapper">
+					  <div class="tracking-result-content form-wrapper" id="edit-content">';
+				foreach ( $TT->TrackAndTraceResult->Checkpoints->Checkpoint as $Checkpoint ) {
+					$dt = new DateTime( $Checkpoint->StatusDate );
+//				print_r( $Checkpoint);
+					$result.= '<div class="tracking-checkpoint form-wrapper">
+				<div class="checkpoint-status"><strong>Κατάσταση</strong>' . $Checkpoint->Status . '</div>
+				<div class="checkpoint-location"><strong>Τοποθεσία</strong>' . $Checkpoint->Shop . '</div>
+				<div class="checkpoint-date"><strong>Ημερομηνία: </strong>' . $dt->format( 'j-n-Y' ) . '</div>
+				<div class="checkpoint-time"><strong>Ώρα: </strong>' . $dt->format( 'H:i' ) . '</div></div>';
+				}
+				$result.= '</div></div></div></div>';
+			}
+		} catch ( SoapFault $fault ) {
+			$result= $fault;
+		}
+		return $result;
+	}
+
 
 } //class

@@ -1,4 +1,5 @@
 <?php
+use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
 
 /**
  * The admin-specific functionality of the plugin.
@@ -69,7 +70,7 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_styles() {
+	public function enqueue_styles($hook) {
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -431,6 +432,42 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 		}
 		if ( ! @isset($this->gt_api) ) $this->gt_api = new GT_API();
 		return 	$this->gt_api->get_status($courier_voucher);
+	}
+
+
+// functions enables searching for voucher number in shop orders
+	function woocommerce_shop_order_search_voucher( $search_fields ) {
+
+		$search_fields[] = 'courier_voucher';
+
+		return $search_fields;
+	}
+
+	/**
+	 * Add a custom metabox only for shop_order post type (order edit pages)
+	 *
+	 */
+	public function gt_add_meta_boxes() {
+		// check if HPOS is enabled
+		$screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+		? wc_get_page_screen_id( 'shop-order' )
+		: 'shop_order';
+		add_meta_box('track_order_meta_box', 'Track and Trace', array($this,'gt_metabox_content'), $screen );
+	}
+
+	public function gt_metabox_content($order_or_postid) {
+		// check if arg is order object (HPOS) or post id (CPT)
+		$order = ( $order_or_postid instanceof WC_Order )
+			? $order_or_postid
+			: wc_get_order( $order_or_postid );
+		$courier_voucher=$order->get_meta( 'courier_voucher');
+		if ( $courier_voucher == '') // Αν δεν έχει καταχωρηθεί αριθμός αποστολής τότε ... ΜΗ ΔΙΑΘΕΣΙΜΟ
+		{
+			echo 'not available';
+		} else {
+			if ( ! @isset( $this->gt_api ) ) $this->gt_api = new GT_API();
+			echo $this->gt_api->get_track( $courier_voucher );
+		}
 	}
 
 } //class
