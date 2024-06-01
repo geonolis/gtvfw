@@ -414,9 +414,9 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 	function gt_add_new_order_admin_list_column_content( $column, $order_or_postid) {
   	 	if ( 'gt_track' === $column ) {
   	 		// check if arg is order object (HPOS) or post id (CPT)
-		    $order = ( $order_or_postid instanceof WP_Post )
-			    ? wc_get_order( $order_or_postid->ID )
-			    : $order_or_postid;
+		    $order = ( $order_or_postid instanceof WC_Order )
+			    ? $order_or_postid
+			    : wc_get_order( $order_or_postid );
 	 		echo $this->gt_shipping_status( $order );
     	}	
 	}
