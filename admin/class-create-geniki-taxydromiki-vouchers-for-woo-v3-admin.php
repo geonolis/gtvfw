@@ -421,12 +421,11 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 	
 	
 	// Εμφάνιση shipping status παραγγελίας
-	private function gt_shipping_status( $order )	{
+	private function gt_shipping_status( $order ): string {
 		$courier_voucher=$order->get_meta( 'courier_voucher');
 		// αν δεν είναι συμπληρωμένος αριθμός voucher, τότε ABORD
 		if ( $courier_voucher == '')	{
-			echo 'not available';
-			return ;
+			return 'not available';;
 		}
 		if ( ! @isset($this->gt_api) ) $this->gt_api = new GT_API();
 		return 	$this->gt_api->get_status($courier_voucher);
