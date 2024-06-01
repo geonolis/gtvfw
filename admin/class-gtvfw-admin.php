@@ -3,17 +3,7 @@
 	/**
 	* The core functionality of the plugin.
 	*
-	* @link       https://github.com/geonolis
-	* @since      1.0.0
-	*
-	* @package    	
-	* @subpackage Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3/admin
-	*/
-
-	/**
-	* The core functionality of the plugin.
-	*
-	* Connects to GT Web Services and Creates the Voucher.
+	* Connects to GT API and Creates the Voucher.
 	*
 	* @package    Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3
 	* @subpackage Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3/admin
@@ -21,13 +11,29 @@
 	*/
 
 class GTVFW {
-	private $gt_api_object;
+	private GT_API $gt_api_object;
 
+	/**
+	 * GTVFW constructor.
+	 * Takes as param the courier company API object and stores it as an object property.
+	 * The APi is called later to return voucher number, status, etc.
+	 * The same GTVFW class may be instantiated with different API's
+	 * and be used with different courier companies
+	 *
+	 * @param GT_API $gt_api_object
+	 */
 	public function __construct( GT_API $gt_api_object ){
 		$this->gt_api_object=$gt_api_object;
-	}		
+	}
 
-
+	/**
+	 * Checks if current order shipping method is included in
+	 * the settings selected shipping methods
+	 *
+	 * @param $order_id
+	 *
+	 * @return bool
+	 */
 	public function is_method( $order_id) {
 		$order=wc_get_order( $order_id );
 		$ship_methods=$order->get_shipping_methods() ;
@@ -40,9 +46,15 @@ class GTVFW {
 		}
 	}
 
-	// Βασική διαδικασία που θα καλείται όταν ΟΛΟΚΛΗΡΩΝΕΤΑΙ η παραγγελία:
+	/**
+	 * Βασική διαδικασία που θα καλείται όταν ΟΛΟΚΛΗΡΩΝΕΤΑΙ η παραγγελία
+	 * Creates voucher, stores voucher number at meta, creates order note
+	 * with link to print voucher pdf
+	 *
+	 * @param $order_id
+	 */
 	function gtvfw_create_voucher( $order_id ) {
-		//get order
+		//get order object
 		$order =  wc_get_order($order_id);
 		//get payment method
 		$payment_method_name= $order->get_payment_method();

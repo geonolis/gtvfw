@@ -29,7 +29,7 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 	 * @access   private
 	 * @var      string    $plugin_name    The ID of this plugin.
 	 */
-	private $plugin_name;
+	private string $plugin_name;
 
 	/**
 	 * The version of this plugin.
@@ -38,7 +38,16 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 	 * @access   private
 	 * @var      string    $version    The current version of this plugin.
 	 */
-	private $version;
+	private string $version;
+
+	/**
+	 * The GT connection API object
+	 * It is referenced as class private property, to be created once and accessed from all class methods
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      GT_API    $gt_api    The API connection object.
+	 */
+	private GT_API $gt_api;
 
 	/**
 	 * Initialize the class and set its properties.
@@ -299,11 +308,11 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 }
 */
 
-public function gtvfw_settings_section_callback_function() {
+	public function gtvfw_settings_section_callback_function() {
 	echo '<p>Συμπληρώστε τα στοιχεία που σας έχει δώσει η Γενική Ταχυδρομική για πρόσβαση στα Web Services.</p>';
 } 
 
-public function gtvfw_setting_callback_render_function( $args ) {
+	public function gtvfw_setting_callback_render_function( $args ) {
  /* EXAMPLE INPUT
 								'type'      => 'input',
 								'subtype'   => '',
@@ -373,14 +382,14 @@ public function gtvfw_setting_callback_render_function( $args ) {
 
 	// Βασική διαδικασία που θα καλείται όταν ΟΛΟΚΛΗΡΩΝΕΤΑΙ η παραγγελία:
 	// Έχει προστεθεί hook στην private function define_admin_hooks() στο includes\class-create-geniki-taxydromiki-vouchers-for-woo-v3.php
-	function woocommerce_create_gt_voucher( $order_id ) 
+	public function woocommerce_create_gt_voucher( $order_id )
 	{
 		// ενεργοποίηση της διασύνδεσης (API) με ΓΤ Web Services
-		$gt_api=new GT_API();
+		if ( ! @isset($this->gt_api) ) $this->gt_api = new GT_API();
 
 		// Νέο αντικείμενο που δημιουργεί Voucher
 		// χρησιμοποιώντας το Αpplication Interface που ενεργοποιήσαμε
-		$gtvfw=new GTVFW($gt_api);
+		$gtvfw=new GTVFW($this->gt_api);
 
 		$order=wc_get_order( $order_id );
 
@@ -397,63 +406,31 @@ public function gtvfw_setting_callback_render_function( $args ) {
 	// ***********************************************************************************************
 	// Εμφάνιση στις στήλες με τς παραγγελίες:
  
-	function gt_add_new_order_admin_list_column( $columns ) {
+	public function gt_add_new_order_admin_list_column( $columns ) {
  	   $columns['gt_track'] = 'Αποστολή ΓΤ';
     return $columns;
 	}
 
-	function gt_add_new_order_admin_list_column_content( $column ) {
-  	 	global $post;
+	function gt_add_new_order_admin_list_column_content( $column, $order_or_postid) {
   	 	if ( 'gt_track' === $column ) {
-  	 	    $order = wc_get_order( $post->ID );
-	 		gt_shipping_status( $order );
+  	 		// check if arg is order object (HPOS) or post id (CPT)
+		    $order = ( $order_or_postid instanceof WC_Order )
+			    ? $order_or_postid
+			    : wc_get_order( $order_or_postid );
+	 		echo $this->gt_shipping_status( $order );
     	}	
 	}
 	
 	
 	// Εμφάνιση shipping status παραγγελίας
-	function gt_shipping_status( $order )	{
+	private function gt_shipping_status( $order ): string {
+		$courier_voucher=$order->get_meta( 'courier_voucher');
 		// αν δεν είναι συμπληρωμένος αριθμός voucher, τότε ABORD
-		if ( $order->get_meta( 'courier_voucher' ) == '')	{
-			echo 'not available';
-			return ;
+		if ( $courier_voucher == '')	{
+			return 'not available';;
 		}
-		$gt_tracked=False; // flag αν έχει κληθεί η αναζήτηση αποστολής
-		try{
-			$oAuthResult = gt_auth(); // κλήση της συνάρτησης για authorization και επιστροφή κλειδιού
-			if ($oAuthResult == 1 ){   // Αν η authorization επέστρεψε -1-  τότε απέτυχε - ABORD
-				echo 'authentication failure 1' ; 
-		 		return ;
-			}else{
-			$gt_counter=0; // μετρητής προσπαθειών σύνδεσης
-			do {	
-				if ($gt_tracked) $oAuthResult = gt_auth( True ); // Αν είναι 2η προσπάθεια τότε ζήτα νέο κωδικό authorization
-				$soap = new SoapClient( gt_server().'?WSDL' ); // νέο αντικελίμενο SOAP
-				$xml = array(  // array για αναζήτηση αριθμού αποστολής
-					'authKey' => $oAuthResult,
-					'voucherNo' =>  $order->get_meta( 'courier_voucher' ),
-					'language' => 'el'
-				);
-				$TT = $soap->TrackAndTrace($xml); // αναζήτηση αποστολής
-				$gt_tracked=True;	// flag ότι έγινε η πρώτη αναζήτηση
-				if ( ++$gt_counter == 3 ){ // αν προσπάθησε να συνδεθεί 3 φορές χωρίς επιτυχία τότε ABORD
-					echo 'authentication failure 3' ; 
-		  			return ;
-				} 
-			} while ($TT->TrackAndTraceResult->Result == 11 ) ; // Αν ο κωδικός authorization έχιε λήξη, ξαναπορσπάθησε
-			if ($TT->TrackAndTraceResult->Result == 9 ){ // Αν δεν βρέθηκε η αποστολή
-				$result='not found'; 
-			}else{ // αν ... όλα πήγαν καλά, εμφάνισε την κατάσταση της αποστολής
-				$dt = new DateTime($TT->TrackAndTraceResult->DeliveryDate);
-				$result= '<a href="https://www.taxydromiki.com/track/' . $order->get_meta( 'courier_voucher' ) . '" target="_blank"><p style=LINE-HEIGHT:18px><strong>'. $TT->TrackAndTraceResult->Status.'</strong>' ;
-			if ( $TT->TrackAndTraceResult->Status == 'ΠΑΡΑΔΟΜΕΝΟ' ) $result.= ' την '.$dt->format('j-n-Y').' σε '.$TT->TrackAndTraceResult->Consignee . '</p></a>' ;
-				else $result.= '</p></a>' ;
-			}	
-		}
-		echo $result;
-	} catch(SoapFault $fault) {
-		echo $fault;
+		if ( ! @isset($this->gt_api) ) $this->gt_api = new GT_API();
+		return 	$this->gt_api->get_status($courier_voucher);
 	}
-}
 
 } //class
