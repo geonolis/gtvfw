@@ -207,7 +207,7 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3 {
 	private function define_public_hooks() {
 
 		$plugin_public = new Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Public( $this->get_plugin_name(), $this->get_version() );
-//		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
+		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 //		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 
 //		Add shipping voucher info at client e-mail:
