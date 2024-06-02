@@ -404,14 +404,27 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 		return;
 	} // function woocommerce_create_gt_voucher()
 	
-	// ***********************************************************************************************
-	// Εμφάνιση στις στήλες με τς παραγγελίες:
- 
+
+	/**
+	 * Add an extra column at orders table, with title: Αποστολή ΓΤ
+	 * Function hooked
+	 * @param $columns
+	 *
+	 * @return mixed
+	 */
 	public function gt_add_new_order_admin_list_column( $columns ) {
  	   $columns['gt_track'] = 'Αποστολή ΓΤ';
     return $columns;
 	}
 
+	/**
+	 * Add content to new column, with order shipping status
+	 * Function hooked
+	 *
+	 * @param $column
+	 * @param $order_or_postid
+	 * @throws Exception
+	 */
 	function gt_add_new_order_admin_list_column_content( $column, $order_or_postid) {
   	 	if ( 'gt_track' === $column ) {
   	 		// check if arg is order object (HPOS) or post id (CPT)
@@ -421,21 +434,30 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 	 		echo $this->gt_shipping_status( $order );
     	}	
 	}
-	
-	
-	// Εμφάνιση shipping status παραγγελίας
+
+	/**
+	 * Εμφάνιση shipping status παραγγελίας
+	 * @param $order
+	 *
+	 * @return string
+	 * @throws Exception
+	 */
 	private function gt_shipping_status( $order ): string {
 		$courier_voucher=$order->get_meta( 'courier_voucher');
 		// αν δεν είναι συμπληρωμένος αριθμός voucher, τότε ABORD
 		if ( $courier_voucher == '')	{
-			return 'not available';;
+			return 'not available';
 		}
 		if ( ! @isset($this->gt_api) ) $this->gt_api = new GT_API();
 		return 	$this->gt_api->get_status($courier_voucher);
 	}
 
-
-// functions enables searching for voucher number in shop orders
+	/**
+	 * Functions enables searching for voucher number in shop orders
+	 * @param $search_fields
+	 *
+	 * @return mixed
+	 */
 	function woocommerce_shop_order_search_voucher( $search_fields ) {
 
 		$search_fields[] = 'courier_voucher';

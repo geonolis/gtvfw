@@ -31,10 +31,8 @@ if GT voucher number exists at order meta  -->
     <div id="custom_order_meta_box" class="postbox ">
         <div class="inside">
 			<?php
-
 			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/create-geniki-taxydromiki-vouchers-for-woo-v3-public.css', array(), $this->version, 'all' );
-
-			gt_track($courier_voucher) ;
+			echo $this->gt_api->get_track($courier_voucher) ;
 			?>
         </div>
     </div>
