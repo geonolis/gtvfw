@@ -1,8 +1,7 @@
 /**
- * All of the CSS for your public-facing functionality should be
+ * All of the CSS for your public-specific functionality should be
  * included in this file.
  */
-
 
 .result-tracking-message {
     display: none;
@@ -57,7 +56,7 @@
 .result-tracking-message .tracking-result > h3:before {
     content: "";
     display: inline-block;
-    background-image: url('../woo-and-geniki-taxydromiki-api-interface/images/generated/icons.png');
+    background-image: url('../../images/icons.png');
     background-position: 0 -122px;
     background-repeat: no-repeat;
     height: 32px;
@@ -67,7 +66,7 @@
 }
 @media (-webkit-min-device-pixel-ratio: 2), (-o-min-device-pixel-ratio: 3 / 2), (min--moz-device-pixel-ratio: 2), (min-device-pixel-ratio: 2), (min-resolution: 144dppx) {
     .result-tracking-message .tracking-result > h3:before {
-        background-image: url('../woo-and-geniki-taxydromiki-api-interface/images/generated/icons-2x.png');
+        background-image: url('../../images/icons-2x.png');
         background-position: 0 -112px;
         background-size: 78px 144px;
     }
@@ -107,7 +106,7 @@
     display: block;
 }
 .result-tracking-message .tracking-result.active > h3:before {
-    background-image: url('../woo-and-geniki-taxydromiki-api-interface/images/generated/icons.png');
+    background-image: url('../../images/icons.png');
     background-position: 0 -90px;
     background-repeat: no-repeat;
     height: 32px;
@@ -115,7 +114,7 @@
 }
 @media (-webkit-min-device-pixel-ratio: 2), (-o-min-device-pixel-ratio: 3 / 2), (min--moz-device-pixel-ratio: 2), (min-device-pixel-ratio: 2), (min-resolution: 144dppx) {
     .result-tracking-message .tracking-result.active > h3:before {
-        background-image: url('../woo-and-geniki-taxydromiki-api-interface/images/generated/icons-2x.png');
+        background-image: url('../../images/icons-2x.png');
         background-position: 0 -80px;
         background-size: 78px 144px;
     }
@@ -142,7 +141,7 @@
 @media (min-width: 640px) {
     .result-tracking-message .tracking-result-content {
         padding: 0 0 0 120px;
-        background: url(../woo-and-geniki-taxydromiki-api-interface/images/track-route.png?2) 25px 20px repeat-y;
+        background: url('../../images/track-route.png') 25px 20px repeat-y;
     }
     .result-tracking-message .tracking-result-content:before {
         content: "";
@@ -156,7 +155,7 @@
     }
     .result-tracking-message .tracking-result-content:after {
         content: "";
-        background: #fff url(../woo-and-geniki-taxydromiki-api-interface/images/logo-small.svg) no-repeat 0 24px;
+        background: #fff url('../../images/logo-small.svg') no-repeat 0 24px;
         background-size: 100% auto;
         width: 70px;
         height: 76px;
