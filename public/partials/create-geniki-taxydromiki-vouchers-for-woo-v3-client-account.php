@@ -19,7 +19,7 @@ if GT voucher number exists at order meta  -->
     <table>
         <tr>
             <td>Αριθμός αποστολής</td><td> : </td>
-            <td><a href="https://www.taxydromiki.com/track/<?php echo $courier_voucher ; ?>" target="_blank"> <?php echo $courier_voucher ?></a> </td>
+            <td><a href="https://www.taxydromiki.com/track/<?php echo $courier_voucher ; ?>" target="_blank"><u> <?php echo $courier_voucher ?></u></a> </td>
         </tr>
         <!--		<tr>
 			<td>Παρακολούθηση αποστολής</td><td> :</td>
