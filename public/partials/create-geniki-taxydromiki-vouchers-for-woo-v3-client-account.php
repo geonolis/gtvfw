@@ -19,7 +19,7 @@ if GT voucher number exists at order meta  -->
     <table>
         <tr>
             <td>Αριθμός αποστολής</td><td> : </td>
-            <td> <?php echo $courier_voucher ?> </td>
+            <td><a href="https://www.taxydromiki.com/track/<?php echo $courier_voucher ; ?>" target="_blank"> <?php echo $courier_voucher ?></a> </td>
         </tr>
         <!--		<tr>
 			<td>Παρακολούθηση αποστολής</td><td> :</td>
@@ -31,7 +31,7 @@ if GT voucher number exists at order meta  -->
     <div id="custom_order_meta_box" class="postbox ">
         <div class="inside">
 			<?php
-			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/create-geniki-taxydromiki-vouchers-for-woo-v3-public.css', array(), $this->version, 'all' );
+			wp_enqueue_style( $this->plugin_name,  '../css/create-geniki-taxydromiki-vouchers-for-woo-v3-public.css', array(), $this->version, 'all' );
 			echo $this->gt_api->get_track($courier_voucher) ;
 			?>
         </div>
