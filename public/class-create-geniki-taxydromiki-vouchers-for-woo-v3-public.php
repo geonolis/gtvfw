@@ -81,7 +81,7 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		if (is_page(view-order))
+		if (is_page('view-order'))
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/create-geniki-taxydromiki-vouchers-for-woo-v3-public.css', array(), $this->version, 'all' );
 	}
 
