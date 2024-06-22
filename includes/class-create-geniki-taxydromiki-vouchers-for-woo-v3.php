@@ -216,7 +216,9 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3 {
 //		ΕΜΦΆΝΙΣΗ ΑΡΙΘΜΟΥ ΑΠΟΣΤΟΛΗΣ ΓΕΝΙΚΗΣ ΤΑΧΥΔΡΟΜΙΚΗΣ ΣΤΟ ΛΟΓΑΡΙΑΣΜΟ ΠΕΛΑΤΗ
 		$this->loader->add_action( 'woocommerce_view_order', $plugin_public, 'woocommerce_view_order_tracking' );
 
-	}
+		// show message on specific extra shipping cost
+		$this->loader->add_action( 'woocommerce_after_shipping_rate', $plugin_public, 'gt_extra_shipping_rate_description' );
+  	}
 
 	/**
 	 * Run the loader to execute all of the hooks with WordPress.
