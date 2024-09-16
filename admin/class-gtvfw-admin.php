@@ -53,9 +53,9 @@ class GTVFW {
 	 *
 	 * @param $order_id
 	 */
-	function gtvfw_create_voucher( $order_id ) {
+	function gtvfw_create_voucher( $order_id, $order ) {
 		//get order object
-		$order =  wc_get_order($order_id);
+//		$order =  wc_get_order($order_id);
 		//get payment method
 		$payment_method_name= $order->get_payment_method();
 		//get order weight - volume	
@@ -122,6 +122,7 @@ class GTVFW {
 					// αποθήκευσε τον αριθμό αποστολής σε meta-data
 			$order->update_meta_data( 'courier_voucher', $voucher );
 					// αποθήκευσε την παραγγελία για να κρατηθεί ο αριθμός αποστολής
+			$order->save_meta_data();
 			$order->save();	
 					// πρόσθεσε σημείωση με τον αριθμό αποστολής και με link για την εκτύπωση του voucher (PDF)
 			$order->add_order_note(__('Job was sent successfully to Gen. Taxydromiki, Voucher number is '.$voucher .' </br><a target="_blank" href="'. $this->gt_api_object->get_voucher_url($voucher) . '">Print</a>', ''));

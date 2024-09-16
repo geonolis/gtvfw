@@ -177,7 +177,7 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3 {
 		// Settings
 		$this->loader->add_action('admin_init', $plugin_admin,'registerAndBuildFields');
 		// Create voucher when order completed
-		$this->loader->add_action('woocommerce_order_status_completed', $plugin_admin, 'woocommerce_create_gt_voucher', 1);
+		$this->loader->add_action('woocommerce_order_status_completed', $plugin_admin, 'woocommerce_create_gt_voucher', 1, 2);
 
 		// Add orders list GT shipping status column title + content
 		// HPOS is enabled.

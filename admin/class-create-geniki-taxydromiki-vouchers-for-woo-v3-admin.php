@@ -383,7 +383,7 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 
 	// Βασική διαδικασία που θα καλείται όταν ΟΛΟΚΛΗΡΩΝΕΤΑΙ η παραγγελία:
 	// Έχει προστεθεί hook στην private function define_admin_hooks() στο includes\class-create-geniki-taxydromiki-vouchers-for-woo-v3.php
-	public function woocommerce_create_gt_voucher( $order_id )
+	public function woocommerce_create_gt_voucher( $order_id, $order )
 	{
 		// ενεργοποίηση της διασύνδεσης (API) με ΓΤ Web Services
 		if ( ! @isset($this->gt_api) ) $this->gt_api = new GT_API();
@@ -392,11 +392,11 @@ class Create_Geniki_Taxydromiki_Vouchers_For_Woo_V3_Admin {
 		// χρησιμοποιώντας το Αpplication Interface που ενεργοποιήσαμε
 		$gtvfw=new GTVFW($this->gt_api);
 
-		$order=wc_get_order( $order_id );
+//		$order=wc_get_order( $order_id );
 
 		if ( $gtvfw->is_method($order_id)) {
 			// Δημιουργία voucher για την παραγγελία
-			$gtvfw->gtvfw_create_voucher($order_id);
+			$gtvfw->gtvfw_create_voucher($order_id, $order);
 		}else{ // Αν η μέθοδος αποστολής της παραγγελίας δεν είναι
 		// επιλεγμένη για τη ΓΤ τότε μην φτιάξεις voucher
 			$order->add_order_note('Order send by other method');		
